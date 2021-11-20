@@ -1,0 +1,106 @@
+package ziolziol.tp.main;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class Main extends JavaPlugin implements CommandExecutor{
+
+	public static Main main;
+	
+	FileConfiguration config = getConfig();
+	
+	public void onEnable() {
+		
+		config.options().copyDefaults(true);
+		saveConfig();
+		
+		main = this;
+		
+	}
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String Label, String[] args) {
+		if(cmd.getName().equalsIgnoreCase("tp")) {
+			Player p = (Player) sender;
+			
+			String cost1 = config.getString("tp.cost");
+			String msg1 = config.getString("tp.msg1");
+			String msg2 = config.getString("tp.msg2");
+			String msg3 = config.getString("tp.msg3");
+			String msg4 = config.getString("tp.msg4");
+			String msg5 = config.getString("tp.msg5");
+			String msg6 = config.getString("tp.msg6");
+			
+			int cost = Integer.valueOf(cost1);
+			
+			StringBuilder sb = new StringBuilder();
+			for(int i = 1; i < args.length; ++i) {
+				sb.append(args[i]).append(" ");
+			}
+			
+			if(args.length == 3) {
+				
+				
+				World w = p.getWorld();
+				
+				String a = args[0];
+				String b = args[1];
+				String c = args[2];
+				
+				int x = Integer.valueOf(a);
+				int y = Integer.valueOf(b);
+				int z = Integer.valueOf(c);
+				
+				Location loc = new Location(w, x, y, z);
+	
+				if(p.getLevel() >= cost) {
+					p.teleport(loc);
+					p.setLevel(p.getLevel() - cost);
+				} else {
+					p.sendMessage(msg1);
+					p.sendMessage(cost + " " + msg4);
+				}
+				
+			} else if(args.length == 1) {
+				Player cel = Bukkit.getPlayer(args[0]);
+					if(cel == null) {
+						p.sendMessage(msg2);
+					} else if(cel == p) {
+						p.sendMessage(msg3);
+					} else if(p.getLevel() >= cost) {
+						p.setLevel(p.getLevel() - cost);
+						p.teleport(cel);
+					} else {
+						p.sendMessage(msg1);
+						p.sendMessage(cost + " " + msg4);
+					}
+					
+			} else {
+				if(p.isOp()) {
+					if(args.length == 2) {
+						if(args[0].equalsIgnoreCase("cost")) {
+							config.set("tp.cost", args[1]);
+							String newcost = args[1];
+							for (Player pl : Bukkit.getOnlinePlayers()) {
+							    pl.sendMessage(msg6 + " " + newcost);
+							}
+							saveConfig();
+						}
+					}
+					
+				} else {
+					p.sendMessage(msg5);
+				}	
+			}
+		}
+		return false;
+	}	
+}
+
+
